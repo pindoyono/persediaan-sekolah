@@ -15,20 +15,23 @@ class InventoryStatsWidget extends BaseWidget
 
     protected function getStats(): array
     {
-        $stats = Cache::remember('inventory_stats', 120, function () {
+        $sumberDana = session('sumber_dana', 'BOSNAS');
+        $cacheKey   = "inventory_stats_{$sumberDana}";
+
+        $stats = Cache::remember($cacheKey, 120, function () use ($sumberDana) {
             return [
-                'total_items'      => Item::count(),
+                'total_items'      => Item::where('sumber_dana', $sumberDana)->count(),
                 'total_categories' => \App\Models\Category::count(),
-                'trx_today_in'     => Transaction::whereDate('tanggal', today())->where('type', 'IN')->count(),
-                'trx_today_out'    => Transaction::whereDate('tanggal', today())->where('type', 'OUT')->count(),
-                'low_stock_count'  => Item::all()->filter(
+                'trx_today_in'     => Transaction::where('sumber_dana', $sumberDana)->whereDate('tanggal', today())->where('type', 'IN')->count(),
+                'trx_today_out'    => Transaction::where('sumber_dana', $sumberDana)->whereDate('tanggal', today())->where('type', 'OUT')->count(),
+                'low_stock_count'  => Item::where('sumber_dana', $sumberDana)->get()->filter(
                     fn(Item $item) => app(\App\Services\StockService::class)->getStock($item) <= $item->min_stock
                 )->count(),
             ];
         });
 
         return [
-            Stat::make('Total Barang', $stats['total_items'])
+            Stat::make('Total Barang (' . $sumberDana . ')', $stats['total_items'])
                 ->icon(Heroicon::ArchiveBox)
                 ->color('primary'),
 
