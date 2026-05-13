@@ -19,7 +19,7 @@ class LowStockWidget extends BaseWidget
     {
         return $table
             ->query(
-                Item::query()->with('category')
+                Item::query()->with('category')->where('sumber_dana', session('sumber_dana', 'BOSNAS'))
             )
             ->columns([
                 TextColumn::make('kode')->label('Kode'),
@@ -43,7 +43,7 @@ class LowStockWidget extends BaseWidget
     public static function canView(): bool
     {
         // Only show widget if there are low stock items
-        return Item::all()->contains(
+        return Item::where('sumber_dana', session('sumber_dana', 'BOSNAS'))->lazy()->contains(
             fn(Item $item) => app(StockService::class)->getStock($item) <= $item->min_stock
         );
     }
