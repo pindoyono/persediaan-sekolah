@@ -3,7 +3,6 @@
 namespace App\Filament\Widgets;
 
 use App\Models\Item;
-use App\Models\StockMovement;
 use App\Services\StockService;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
@@ -17,9 +16,13 @@ class LowStockWidget extends BaseWidget
 
     public function table(Table $table): Table
     {
+        $sumberDana = session('sumber_dana', 'BOSNAS');
+
         return $table
             ->query(
-                Item::query()->with('category')->where('sumber_dana', session('sumber_dana', 'BOSNAS'))
+                Item::query()
+                    ->with('category')
+                    ->where('sumber_dana', $sumberDana)
             )
             ->columns([
                 TextColumn::make('kode')->label('Kode'),
@@ -42,9 +45,9 @@ class LowStockWidget extends BaseWidget
 
     public static function canView(): bool
     {
-        // Only show widget if there are low stock items
-        return Item::where('sumber_dana', session('sumber_dana', 'BOSNAS'))->lazy()->contains(
-            fn(Item $item) => app(StockService::class)->getStock($item) <= $item->min_stock
-        );
+        // Only show widget if there are low stock items for the current sumber_dana
+        return Item::where('sumber_dana', session('sumber_dana', 'BOSNAS'))
+            ->whereRaw('(SELECT COALESCE(SUM(CASE WHEN type = \'IN\' THEN qty ELSE -qty END), 0) FROM stock_movements WHERE item_id = items.id) <= min_stock')
+            ->exists();
     }
 }

@@ -13,16 +13,17 @@ class StockMovementChart extends ChartWidget
 
     protected function getData(): array
     {
-        $sumberDana = session('sumber_dana', 'BOSNAS');
+        $sumberDana = in_array(session('sumber_dana'), ['BOSNAS', 'BOP']) ? session('sumber_dana') : 'BOSNAS';
+        $cacheKey   = "chart_stock_movement_7days_{$sumberDana}";
 
-        $data = Cache::remember("chart_stock_movement_7days_{$sumberDana}", 300, function () use ($sumberDana) {
+        $data = Cache::remember($cacheKey, 300, function () use ($sumberDana) {
             $days = collect(range(6, 0))->map(fn($i) => now()->subDays($i)->toDateString());
 
             $movements = StockMovement::query()
-                ->selectRaw('DATE(created_at) as date, type, SUM(qty) as total')
-                ->whereDate('created_at', '>=', now()->subDays(6))
+                ->selectRaw('DATE(stock_movements.created_at) as date, stock_movements.type, SUM(stock_movements.qty) as total')
                 ->whereHas('item', fn($q) => $q->where('sumber_dana', $sumberDana))
-                ->groupBy('date', 'type')
+                ->whereDate('stock_movements.created_at', '>=', now()->subDays(6))
+                ->groupBy('date', 'stock_movements.type')
                 ->get()
                 ->groupBy('date');
 
