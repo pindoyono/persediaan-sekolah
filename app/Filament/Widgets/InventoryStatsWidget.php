@@ -20,7 +20,7 @@ class InventoryStatsWidget extends BaseWidget
         $stats = Cache::remember('inventory_stats_' . $sumberDana, 120, function () use ($sumberDana) {
             return [
                 'total_items'      => Item::where('sumber_dana', $sumberDana)->count(),
-                'total_categories' => \App\Models\Category::count(),
+                'total_categories' => \App\Models\Category::count(), // categories are shared across sumber_dana
                 'trx_today_in'     => Transaction::whereDate('tanggal', today())->where('type', 'IN')->where('sumber_dana', $sumberDana)->count(),
                 'trx_today_out'    => Transaction::whereDate('tanggal', today())->where('type', 'OUT')->where('sumber_dana', $sumberDana)->count(),
                 'low_stock_count'  => Item::where('sumber_dana', $sumberDana)
