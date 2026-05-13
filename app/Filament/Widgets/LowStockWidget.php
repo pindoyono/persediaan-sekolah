@@ -17,9 +17,13 @@ class LowStockWidget extends BaseWidget
 
     public function table(Table $table): Table
     {
+        $sumberDana = session('sumber_dana', 'BOSNAS');
+
         return $table
             ->query(
-                Item::query()->with('category')
+                Item::query()
+                    ->with('category')
+                    ->where('sumber_dana', $sumberDana)
             )
             ->columns([
                 TextColumn::make('kode')->label('Kode'),
@@ -42,8 +46,8 @@ class LowStockWidget extends BaseWidget
 
     public static function canView(): bool
     {
-        // Only show widget if there are low stock items
-        return Item::all()->contains(
+        $sumberDana = session('sumber_dana', 'BOSNAS');
+        return Item::where('sumber_dana', $sumberDana)->get()->contains(
             fn(Item $item) => app(StockService::class)->getStock($item) <= $item->min_stock
         );
     }

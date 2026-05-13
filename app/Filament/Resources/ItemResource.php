@@ -17,6 +17,7 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class ItemResource extends Resource
 {
@@ -77,6 +78,7 @@ class ItemResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn (Builder $query) => $query->where('sumber_dana', session('sumber_dana', 'BOSNAS')))
             ->columns([
                 TextColumn::make('kode')->label('Kode')->searchable()->sortable(),
                 TextColumn::make('name')->label('Nama')->searchable()->sortable(),
