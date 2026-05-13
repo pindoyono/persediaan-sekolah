@@ -13,7 +13,7 @@ class StockMovementChart extends ChartWidget
 
     protected function getData(): array
     {
-        $sumberDana = session('sumber_dana', 'BOSNAS');
+        $sumberDana = in_array(session('sumber_dana'), ['BOSNAS', 'BOP']) ? session('sumber_dana') : 'BOSNAS';
         $cacheKey   = "chart_stock_movement_7days_{$sumberDana}";
 
         $data = Cache::remember($cacheKey, 300, function () use ($sumberDana) {
