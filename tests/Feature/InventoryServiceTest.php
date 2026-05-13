@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\SumberDana;
 use App\Models\Category;
 use App\Models\Item;
 use App\Services\CodeGeneratorService;
@@ -138,9 +139,34 @@ class InventoryServiceTest extends TestCase
     {
         $category = $this->service->createCategory(['name' => 'Test']);
 
-        $this->service->createItem(['name' => 'Spidol', 'category_id' => $category->id, 'satuan' => 'pcs', 'min_stock' => 2]);
+        $this->service->createItem([
+            'name' => 'Spidol',
+            'category_id' => $category->id,
+            'sumber_dana' => SumberDana::BOP->value,
+            'satuan' => 'pcs',
+            'min_stock' => 2,
+        ]);
 
-        $this->assertDatabaseHas('items', ['name' => 'Spidol', 'satuan' => 'pcs', 'min_stock' => 2]);
+        $this->assertDatabaseHas('items', [
+            'name' => 'Spidol',
+            'sumber_dana' => SumberDana::BOP->value,
+            'satuan' => 'pcs',
+            'min_stock' => 2,
+        ]);
+    }
+
+    public function test_create_item_casts_sumber_dana_to_enum(): void
+    {
+        $category = $this->service->createCategory(['name' => 'ATK']);
+
+        $item = $this->service->createItem([
+            'name' => 'Pulpen',
+            'category_id' => $category->id,
+            'sumber_dana' => SumberDana::BOSNAS->value,
+            'satuan' => 'pcs',
+        ]);
+
+        $this->assertSame(SumberDana::BOSNAS, $item->sumber_dana);
     }
 
     public function test_create_item_sets_min_stock_default_to_zero(): void

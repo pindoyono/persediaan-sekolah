@@ -57,6 +57,7 @@ class InventoryService
             'kode'        => $kode,
             'name'        => $data['name'],
             'category_id' => $data['category_id'],
+            'sumber_dana' => $data['sumber_dana'] ?? 'BOSNAS',
             'satuan'      => $data['satuan'],
             'min_stock'   => $data['min_stock'] ?? 0,
         ]);

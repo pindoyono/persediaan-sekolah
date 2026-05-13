@@ -2,19 +2,22 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Pages\GantiSumberDana;
+use App\Filament\Widgets\InventoryStatsWidget;
+use App\Filament\Widgets\LowStockWidget;
+use App\Filament\Widgets\StockMovementChart;
+use App\Http\Middleware\EnsureSumberDanaSelected;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
+use Filament\Navigation\MenuItem;
 use Filament\Pages\Dashboard;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
 use Filament\Widgets\AccountWidget;
 use Filament\Widgets\FilamentInfoWidget;
-use App\Filament\Widgets\InventoryStatsWidget;
-use App\Filament\Widgets\StockMovementChart;
-use App\Filament\Widgets\LowStockWidget;
 use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
@@ -61,6 +64,15 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->authMiddleware([
                 Authenticate::class,
+                EnsureSumberDanaSelected::class,
+            ])
+            ->userMenuItems([
+                MenuItem::make()
+                    ->label(fn() => 'Dana: ' . (session('sumber_dana') ?? 'Belum dipilih'))
+                    ->icon(fn() => session('sumber_dana') === 'BOP'
+                        ? 'heroicon-o-building-library'
+                        : 'heroicon-o-academic-cap')
+                    ->url(fn() => GantiSumberDana::getUrl()),
             ])
             ->plugin(FilamentShieldPlugin::make());
     }

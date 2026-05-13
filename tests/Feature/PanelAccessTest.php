@@ -30,55 +30,73 @@ class PanelAccessTest extends TestCase
 
     public function test_authenticated_user_can_access_admin_panel(): void
     {
-        $role = Role::create(['name' => 'super_admin', 'guard_name' => 'web']);
-        $user = User::factory()->create();
-        $user->assignRole($role);
+        $user = $this->createSuperAdmin();
 
-        $response = $this->actingAs($user)->get('/admin');
+        $response = $this->actingAs($user)
+            ->withSession(['sumber_dana' => 'BOSNAS'])
+            ->get('/admin');
 
         $response->assertOk();
     }
 
+    public function test_authenticated_user_without_selected_sumber_dana_is_redirected_to_selection_page(): void
+    {
+        $user = $this->createSuperAdmin();
+
+        $this->actingAs($user)
+            ->get('/admin')
+            ->assertRedirect('/admin/pilih-sumber-dana');
+    }
+
+    public function test_authenticated_user_can_access_sumber_dana_selection_page_without_session(): void
+    {
+        $user = $this->createSuperAdmin();
+
+        $this->actingAs($user)
+            ->get('/admin/pilih-sumber-dana')
+            ->assertOk();
+    }
+
     public function test_authenticated_user_can_access_categories_resource(): void
     {
-        $role = Role::create(['name' => 'super_admin', 'guard_name' => 'web']);
-        $user = User::factory()->create();
-        $user->assignRole($role);
+        $user = $this->createSuperAdmin();
 
-        $response = $this->actingAs($user)->get('/admin/categories');
+        $response = $this->actingAs($user)
+            ->withSession(['sumber_dana' => 'BOSNAS'])
+            ->get('/admin/categories');
 
         $response->assertOk();
     }
 
     public function test_authenticated_user_can_access_items_resource(): void
     {
-        $role = Role::create(['name' => 'super_admin', 'guard_name' => 'web']);
-        $user = User::factory()->create();
-        $user->assignRole($role);
+        $user = $this->createSuperAdmin();
 
-        $response = $this->actingAs($user)->get('/admin/items');
+        $response = $this->actingAs($user)
+            ->withSession(['sumber_dana' => 'BOSNAS'])
+            ->get('/admin/items');
 
         $response->assertOk();
     }
 
     public function test_authenticated_user_can_access_transactions_resource(): void
     {
-        $role = Role::create(['name' => 'super_admin', 'guard_name' => 'web']);
-        $user = User::factory()->create();
-        $user->assignRole($role);
+        $user = $this->createSuperAdmin();
 
-        $response = $this->actingAs($user)->get('/admin/transactions');
+        $response = $this->actingAs($user)
+            ->withSession(['sumber_dana' => 'BOSNAS'])
+            ->get('/admin/transactions');
 
         $response->assertOk();
     }
 
     public function test_authenticated_user_can_access_shield_roles(): void
     {
-        $role = Role::create(['name' => 'super_admin', 'guard_name' => 'web']);
-        $user = User::factory()->create();
-        $user->assignRole($role);
+        $user = $this->createSuperAdmin();
 
-        $response = $this->actingAs($user)->get('/admin/shield/roles');
+        $response = $this->actingAs($user)
+            ->withSession(['sumber_dana' => 'BOSNAS'])
+            ->get('/admin/shield/roles');
 
         $response->assertOk();
     }
@@ -88,7 +106,9 @@ class PanelAccessTest extends TestCase
         // Create a plain user without any role or permission
         $user = User::factory()->create();
 
-        $response = $this->actingAs($user)->get('/admin/shield/roles');
+        $response = $this->actingAs($user)
+            ->withSession(['sumber_dana' => 'BOSNAS'])
+            ->get('/admin/shield/roles');
 
         // Filament redirects unauthorized access (403 or redirect)
         $response->assertStatus(403);
@@ -101,12 +121,21 @@ class PanelAccessTest extends TestCase
 
     public function test_authenticated_user_can_access_create_transaction_page(): void
     {
-        $role = Role::create(['name' => 'super_admin', 'guard_name' => 'web']);
+        $user = $this->createSuperAdmin();
+
+        $response = $this->actingAs($user)
+            ->withSession(['sumber_dana' => 'BOSNAS'])
+            ->get('/admin/transactions/create');
+
+        $response->assertOk();
+    }
+
+    private function createSuperAdmin(): User
+    {
+        $role = Role::firstOrCreate(['name' => 'super_admin', 'guard_name' => 'web']);
         $user = User::factory()->create();
         $user->assignRole($role);
 
-        $response = $this->actingAs($user)->get('/admin/transactions/create');
-
-        $response->assertOk();
+        return $user;
     }
 }
