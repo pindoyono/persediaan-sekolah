@@ -15,20 +15,22 @@ class InventoryStatsWidget extends BaseWidget
 
     protected function getStats(): array
     {
-        $stats = Cache::remember('inventory_stats', 120, function () {
+        $sumberDana = in_array(session('sumber_dana'), ['BOSNAS', 'BOP']) ? session('sumber_dana') : 'BOSNAS';
+
+        $stats = Cache::remember('inventory_stats_' . $sumberDana, 120, function () use ($sumberDana) {
             return [
-                'total_items'      => Item::count(),
+                'total_items'      => Item::where('sumber_dana', $sumberDana)->count(),
                 'total_categories' => \App\Models\Category::count(),
-                'trx_today_in'     => Transaction::whereDate('tanggal', today())->where('type', 'IN')->count(),
-                'trx_today_out'    => Transaction::whereDate('tanggal', today())->where('type', 'OUT')->count(),
-                'low_stock_count'  => Item::all()->filter(
-                    fn(Item $item) => app(\App\Services\StockService::class)->getStock($item) <= $item->min_stock
-                )->count(),
+                'trx_today_in'     => Transaction::whereDate('tanggal', today())->where('type', 'IN')->where('sumber_dana', $sumberDana)->count(),
+                'trx_today_out'    => Transaction::whereDate('tanggal', today())->where('type', 'OUT')->where('sumber_dana', $sumberDana)->count(),
+                'low_stock_count'  => Item::where('sumber_dana', $sumberDana)
+                    ->whereRaw('(SELECT COALESCE(SUM(CASE WHEN type = \'IN\' THEN qty ELSE -qty END), 0) FROM stock_movements WHERE item_id = items.id) <= min_stock')
+                    ->count(),
             ];
         });
 
         return [
-            Stat::make('Total Barang', $stats['total_items'])
+            Stat::make('Total Barang (' . $sumberDana . ')', $stats['total_items'])
                 ->icon(Heroicon::ArchiveBox)
                 ->color('primary'),
 
