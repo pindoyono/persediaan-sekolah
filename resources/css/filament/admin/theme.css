@@ -1,0 +1,11 @@
+@import '../../../../vendor/filament/filament/resources/css/theme.css';
+
+@source '../../../../app/Filament/**/*.php';
+@source '../../../../resources/views/filament/**/*.blade.php';
+@source '../../../../resources/views/**/*.blade.php';
+@source '../../../../resources/js/**/*.js';
+
+/*
+ | Keep this file as the Tailwind source for Filament admin panel.
+ | Add panel-specific utility usage here when needed.
+ */
