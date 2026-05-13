@@ -16,9 +16,13 @@ class LowStockWidget extends BaseWidget
 
     public function table(Table $table): Table
     {
+        $sumberDana = session('sumber_dana', 'BOSNAS');
+
         return $table
             ->query(
-                Item::query()->with('category')->where('sumber_dana', session('sumber_dana', 'BOSNAS'))
+                Item::query()
+                    ->with('category')
+                    ->where('sumber_dana', $sumberDana)
             )
             ->columns([
                 TextColumn::make('kode')->label('Kode'),
