@@ -38,6 +38,7 @@ class TransactionService
             $transaction = Transaction::create([
                 'kode'        => $kode,
                 'type'        => $data['type'],
+                'sumber_dana' => $data['sumber_dana'] ?? 'BOSNAS',
                 'tanggal'     => $data['tanggal'],
                 'created_by'  => $data['created_by'],
                 'keterangan'  => $data['keterangan'] ?? null,

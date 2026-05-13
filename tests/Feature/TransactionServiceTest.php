@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\SumberDana;
 use App\Events\TransactionCreated;
 use App\Models\Category;
 use App\Models\Item;
@@ -39,6 +40,7 @@ class TransactionServiceTest extends TestCase
             'kode'        => 'BRG-0001',
             'name'        => 'Test Item',
             'category_id' => $category->id,
+            'sumber_dana' => SumberDana::BOSNAS,
             'satuan'      => 'pcs',
             'min_stock'   => 5,
         ]);
@@ -50,6 +52,7 @@ class TransactionServiceTest extends TestCase
     {
         $transaction = $this->service->create([
             'type'       => 'IN',
+            'sumber_dana' => SumberDana::BOP->value,
             'tanggal'    => '2026-05-03',
             'keterangan' => 'Initial stock',
             'created_by' => $this->user->id,
@@ -58,10 +61,12 @@ class TransactionServiceTest extends TestCase
 
         $this->assertDatabaseHas('transactions', [
             'type'       => 'IN',
+            'sumber_dana' => SumberDana::BOP->value,
             'keterangan' => 'Initial stock',
             'created_by' => $this->user->id,
         ]);
         $this->assertStringStartsWith('TRX-IN-', $transaction->kode);
+        $this->assertSame(SumberDana::BOP, $transaction->sumber_dana);
     }
 
     public function test_create_in_transaction_saves_details(): void

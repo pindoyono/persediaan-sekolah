@@ -6,14 +6,14 @@ use App\Filament\Resources\ItemResource\Pages;
 use App\Models\Item;
 use App\Services\InventoryService;
 use App\Services\StockService;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\EditAction;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
-use Filament\Actions\DeleteAction;
-use Filament\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -52,6 +52,13 @@ class ItemResource extends Resource
                 ->required()
                 ->disabledOn('edit'),
 
+            TextInput::make('sumber_dana')
+                ->label('Sumber Dana')
+                ->default(fn() => session('sumber_dana', 'BOSNAS'))
+                ->disabled()
+                ->dehydrated()
+                ->visibleOn('create'),
+
             TextInput::make('satuan')
                 ->label('Satuan')
                 ->required()
@@ -74,6 +81,10 @@ class ItemResource extends Resource
                 TextColumn::make('kode')->label('Kode')->searchable()->sortable(),
                 TextColumn::make('name')->label('Nama')->searchable()->sortable(),
                 TextColumn::make('category.name')->label('Kategori')->searchable()->sortable(),
+                TextColumn::make('sumber_dana')
+                    ->label('Sumber Dana')
+                    ->badge()
+                    ->sortable(),
                 TextColumn::make('satuan')->label('Satuan'),
                 TextColumn::make('min_stock')->label('Min Stok')->numeric()->sortable(),
                 TextColumn::make('current_stock')
@@ -92,6 +103,9 @@ class ItemResource extends Resource
                 SelectFilter::make('category_id')
                     ->label('Kategori')
                     ->relationship('category', 'name'),
+                SelectFilter::make('sumber_dana')
+                    ->label('Sumber Dana')
+                    ->options(\App\Enums\SumberDana::class),
             ])
             ->actions([
                 EditAction::make()

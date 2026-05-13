@@ -6,6 +6,7 @@ use App\Exports\TransactionExport;
 use App\Filament\Resources\TransactionResource\Pages;
 use App\Models\Item;
 use App\Models\Transaction;
+use Filament\Actions\Action;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
@@ -14,7 +15,6 @@ use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
-use Filament\Actions\Action;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
@@ -43,6 +43,13 @@ class TransactionResource extends Resource
                 ->required()
                 ->live(),
 
+            TextInput::make('sumber_dana')
+                ->label('Sumber Dana')
+                ->default(fn() => session('sumber_dana', 'BOSNAS'))
+                ->disabled()
+                ->dehydrated()
+                ->visibleOn('create'),
+
             DatePicker::make('tanggal')
                 ->label('Tanggal')
                 ->required()
@@ -58,9 +65,13 @@ class TransactionResource extends Resource
                 ->schema([
                     Select::make('item_id')
                         ->label('Barang')
-                        ->options(Item::query()->with('category')->get()->mapWithKeys(
-                            fn(Item $item) => [$item->id => "[{$item->kode}] {$item->name} ({$item->satuan})"]
-                        ))
+                        ->options(fn() => Item::query()
+                            ->with('category')
+                            ->where('sumber_dana', session('sumber_dana', 'BOSNAS'))
+                            ->get()
+                            ->mapWithKeys(
+                                fn(Item $item) => [$item->id => "[{$item->kode}] {$item->name} ({$item->satuan})"]
+                            ))
                         ->searchable()
                         ->required(),
 
@@ -89,6 +100,10 @@ class TransactionResource extends Resource
                         'OUT' => 'danger',
                         default => 'gray',
                     }),
+                TextColumn::make('sumber_dana')
+                    ->label('Sumber Dana')
+                    ->badge()
+                    ->sortable(),
                 TextColumn::make('tanggal')->label('Tanggal')->date('d/m/Y')->sortable(),
                 TextColumn::make('creator.name')->label('Dibuat Oleh')->searchable(),
                 TextColumn::make('details_count')
@@ -101,6 +116,9 @@ class TransactionResource extends Resource
                 SelectFilter::make('type')
                     ->label('Tipe')
                     ->options(['IN' => 'Masuk', 'OUT' => 'Keluar']),
+                SelectFilter::make('sumber_dana')
+                    ->label('Sumber Dana')
+                    ->options(\App\Enums\SumberDana::class),
                 Filter::make('tanggal')
                     ->form([
                         DatePicker::make('from')->label('Dari'),
