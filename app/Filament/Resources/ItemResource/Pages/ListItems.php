@@ -2,13 +2,13 @@
 
 namespace App\Filament\Resources\ItemResource\Pages;
 
+use App\Filament\Resources\ItemResource;
 use App\Exports\ItemExport;
 use App\Exports\ItemTemplateExport;
-use App\Filament\Resources\ItemResource;
 use App\Imports\ItemImport;
 use App\Services\InventoryService;
-use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
+use Filament\Actions\Action;
 use Filament\Forms\Components\FileUpload;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ListRecords;
@@ -24,10 +24,6 @@ class ListItems extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            CreateAction::make()
-                ->using(function (array $data): \App\Models\Item {
-                    return app(InventoryService::class)->createItem($data);
-                }),
             Action::make('export')
                 ->label('Export Excel')
                 ->icon(Heroicon::ArrowDownTray)
@@ -88,6 +84,10 @@ class ListItems extends ListRecords
                     } finally {
                         Storage::disk('local')->delete($data['file']);
                     }
+                }),
+            CreateAction::make()
+                ->using(function (array $data): \App\Models\Item {
+                    return app(InventoryService::class)->createItem($data);
                 }),
         ];
     }
