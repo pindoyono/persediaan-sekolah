@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\ItemResource\Pages;
 use App\Models\Item;
+use App\Models\TransactionDetail;
 use App\Services\InventoryService;
 use App\Services\StockService;
 use Filament\Actions\DeleteAction;
@@ -14,6 +15,7 @@ use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
+use Filament\Tables\Actions\Action;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -110,6 +112,43 @@ class ItemResource extends Resource
                     ->options(\App\Enums\SumberDana::class),
             ])
             ->actions([
+                Action::make('riwayatStok')
+                    ->label('Riwayat')
+                    ->icon(Heroicon::ClipboardDocumentList)
+                    ->color('info')
+                    ->modalHeading(fn (Item $record) => "Riwayat Stok: [{$record->kode}] {$record->name}")
+                    ->modalContent(function (Item $record) {
+                        $histories = TransactionDetail::with(['transaction.creator'])
+                            ->where('item_id', $record->id)
+                            ->join('transactions', 'transaction_details.transaction_id', '=', 'transactions.id')
+                            ->orderBy('transactions.tanggal', 'asc')
+                            ->orderBy('transactions.created_at', 'asc')
+                            ->orderBy('transaction_details.id', 'asc')
+                            ->select('transaction_details.*')
+                            ->get();
+
+                        $runningBalance = 0;
+                        $historiesWithBalance = $histories->map(function ($detail) use (&$runningBalance) {
+                            $type = $detail->transaction->type;
+                            $typeValue = is_string($type) ? $type : $type->value;
+                            if ($typeValue === 'IN') {
+                                $runningBalance += $detail->qty;
+                            } else {
+                                $runningBalance -= $detail->qty;
+                            }
+                            $detail->running_balance = $runningBalance;
+                            return $detail;
+                        });
+
+                        return view('filament.modals.riwayat-stok', [
+                            'item' => $record,
+                            'histories' => $historiesWithBalance,
+                            'currentStock' => app(StockService::class)->getStock($record),
+                        ]);
+                    })
+                    ->modalSubmitAction(false)
+                    ->modalCancelActionLabel('Tutup')
+                    ->slideOver(),
                 EditAction::make()
                     ->using(function (Item $record, array $data): Item {
                         return app(InventoryService::class)->updateItem($record, $data);
